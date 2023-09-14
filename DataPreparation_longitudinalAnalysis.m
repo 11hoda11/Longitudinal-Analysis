@@ -1,13 +1,17 @@
 
-%%% Data preparation for Longitudinal Analysis
+% Data preparation for Longitudinal Analysis script
+% Author: Hoda Nabavi
+% Date: July 22, 2020
 
 % Input is a MATLAB workspace file including gait variables for all participants
 % Output is a matrix prepared for longitudinal analysis in R
 % each walk is a time point for longitudinal analysis
 
 %% Loding data
+% Clear previous variables
 clear;
 
+% Load the data based on the analysis type (1 for after-event, 2 for before-event)
 % Prompt the user for analysis type
 AN = input('Input 1 for after-event analysis and 2 for before-event analysis: ');
 
@@ -18,6 +22,7 @@ elseif AN == 2
     load('FileName_after.mat');
 end
 
+% Initialize variables
 allSubjectsGait = [];
 
 % Load hospitalization data  
@@ -28,6 +33,7 @@ eventID=hospdata(:,2);
 %% Reading subject's data based on subject IDs
 p = 1;
 
+% Loop through subjects
 for i = 1:64
     if i < 10
         subjectID = strcat('AMB0', num2str(i));
@@ -38,8 +44,11 @@ for i = 1:64
     daynumber = strcat(subjectID, '_day');
     
     try
+        % Extract subject's gait data and date
         subjectgait = eval(strcat(subjectID, '_new2'));
         subjectdates = eval(strcat(subjectID, '_new2_dates'));
+       
+        % Process date information
         A = datevec(subjectdates);
         A(:, 4:6) = [];
         A = datetime(A);
@@ -73,9 +82,11 @@ for i = 1:64
                 break;
             end
         end
-%% Crop data based on hospitalization information     
+        %% Crop data based on hospitalization information 
+       
+        % Data processing based on analysis type
         if AN == 2
-            % Preparing data before the event
+            % After-event analysis
             for j = 1:length(hospID)
                 if hospID(j) == i && hospdata(hospID(j), 5) > 1 && hospdata(hospID(j), 5) <= hospdata(hospID(j), 4)
                     event = hospdata(hospID(j), 5);
@@ -102,7 +113,7 @@ for i = 1:64
         end
         
         if AN == 1
-            % Preparing data after the event
+            % Before-event analysis
             for j = 1:length(hospID)
                 if hospID(j) == i && hospdataafter(hospID(j), 5) >= nodays
                     del(p) = hospID(j);
@@ -136,3 +147,7 @@ for i = 1:64
     catch
     end
 end
+
+%% Save the results (if needed)
+% xlswrite('output.xlsx', allSubjectsGait);
+
